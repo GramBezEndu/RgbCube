@@ -14,6 +14,10 @@ namespace MonoGame.Tests.Components
 		GraphicsDevice graphicsDevice;
 		BasicEffect basicEffect;
 
+		const int number_of_vertices = 8;
+		const int number_of_indices = 36;
+		VertexBuffer vertices;
+
 		Matrix worldMatrix, viewMatrix, projectionMatrix;
 		float rotationX = 0f;
 		float rotationY = 0.4f;
@@ -28,13 +32,9 @@ namespace MonoGame.Tests.Components
 		public void LoadContent()
 		{
 			// setup our graphics scene matrices
-			worldMatrix = Matrix.Identity;
+			UpdateWorldMatrix();
 			viewMatrix = Matrix.CreateLookAt(new Vector3(0, 0, 5), Vector3.Zero, Vector3.Up);
 			projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, graphicsDevice.Viewport.AspectRatio, 1, 10);
-
-			worldMatrix *= Matrix.CreateRotationX(rotationX);
-			worldMatrix *= Matrix.CreateRotationY(rotationY);
-			worldMatrix *= Matrix.CreateTranslation(CubePosition);
 
 			// Setup our basic effect
 			basicEffect = new BasicEffect(graphicsDevice);
@@ -66,30 +66,25 @@ namespace MonoGame.Tests.Components
 			graphicsDevice.SetVertexBuffer(vertices);
 			graphicsDevice.Indices = indices;
 
-			//RasterizerState rasterizerState1 = new RasterizerState ();
-			//rasterizerState1.CullMode = CullMode.None;
-			//graphics.GraphicsDevice.RasterizerState = rasterizerState1;
-
 			basicEffect.World = worldMatrix;
 
 			foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
 			{
 				pass.Apply();
-
 				graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, number_of_vertices, 0, number_of_indices / 3);
-
 			}
 		}
 
 		public void Update()
         {
+			float rotationChange = 0.008f;
 			if (Keyboard.GetState().IsKeyDown(Keys.D))
 			{
-				rotationY += 0.008f;
+				rotationY += rotationChange;
 			}
 			else if (Keyboard.GetState().IsKeyDown(Keys.A))
 			{
-				rotationY -= 0.008f;
+				rotationY -= rotationChange;
 			}
 			if (rotationY > 2 * Math.PI)
 			{
@@ -97,35 +92,24 @@ namespace MonoGame.Tests.Components
 			}
 			if (Keyboard.GetState().IsKeyDown(Keys.W))
 			{
-				rotationX += 0.008f;
+				rotationX += rotationChange;
 			}
 			else if (Keyboard.GetState().IsKeyDown(Keys.S))
 			{
-				rotationX -= 0.008f;
+				rotationX -= rotationChange;
 			}
 			if (rotationX > 2 * Math.PI)
 			{
 				rotationX = 0f;
 			}
-			worldMatrix = Matrix.Identity;
-			Matrix rotation = Matrix.CreateRotationY(rotationY) * Matrix.CreateRotationX(rotationX);
-			worldMatrix *= Matrix.CreateRotationX(rotationX);
-			worldMatrix *= Matrix.CreateRotationY(rotationY);
-			worldMatrix *= Matrix.CreateTranslation(CubePosition);
-
-			worldMatrix = Matrix.CreateTranslation(CubePosition) * rotation;
-			//Matrix R = Matrix.CreateRotationY(rotationY) * Matrix.CreateRotationX(rotationX);
-			//Matrix T = Matrix.CreateTranslation(0.0f, 0f, 5f);
-			//basicEffect.World = R * T;
-
-			//worldMatrix *= Matrix.CreateRotationX(rotationX);
-			//worldMatrix *= Matrix.CreateRotationY(rotationY);
-			//worldMatrix *= Matrix.CreateTranslation(CubePosition);
+			UpdateWorldMatrix();
 		}
 
-		const int number_of_vertices = 8;
-		const int number_of_indices = 36;
-		VertexBuffer vertices;
+		void UpdateWorldMatrix()
+        {
+			Matrix rotation = Matrix.CreateRotationY(rotationY) * Matrix.CreateRotationX(rotationX);
+			worldMatrix = Matrix.CreateTranslation(CubePosition) * rotation;
+		}
 
 		void CreateCubeVertexBuffer()
 		{
@@ -159,7 +143,7 @@ namespace MonoGame.Tests.Components
 		{
 			UInt16[] cubeIndices = new UInt16[number_of_indices];
 
-			//bottom face
+			//bottom
 			cubeIndices[0] = 0;
 			cubeIndices[1] = 2;
 			cubeIndices[2] = 3;
@@ -167,7 +151,7 @@ namespace MonoGame.Tests.Components
 			cubeIndices[4] = 1;
 			cubeIndices[5] = 2;
 
-			//top face
+			//top
 			cubeIndices[6] = 4;
 			cubeIndices[7] = 6;
 			cubeIndices[8] = 5;
@@ -175,7 +159,7 @@ namespace MonoGame.Tests.Components
 			cubeIndices[10] = 7;
 			cubeIndices[11] = 6;
 
-			//front face
+			//front
 			cubeIndices[12] = 5;
 			cubeIndices[13] = 2;
 			cubeIndices[14] = 1;
@@ -183,7 +167,7 @@ namespace MonoGame.Tests.Components
 			cubeIndices[16] = 6;
 			cubeIndices[17] = 2;
 
-			//back face
+			//back
 			cubeIndices[18] = 0;
 			cubeIndices[19] = 7;
 			cubeIndices[20] = 4;
@@ -191,7 +175,7 @@ namespace MonoGame.Tests.Components
 			cubeIndices[22] = 3;
 			cubeIndices[23] = 7;
 
-			//left face
+			//left
 			cubeIndices[24] = 0;
 			cubeIndices[25] = 4;
 			cubeIndices[26] = 1;
@@ -199,7 +183,7 @@ namespace MonoGame.Tests.Components
 			cubeIndices[28] = 4;
 			cubeIndices[29] = 5;
 
-			//right face
+			//right
 			cubeIndices[30] = 2;
 			cubeIndices[31] = 6;
 			cubeIndices[32] = 3;
@@ -209,7 +193,6 @@ namespace MonoGame.Tests.Components
 
 			indices = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, number_of_indices, BufferUsage.WriteOnly);
 			indices.SetData<UInt16>(cubeIndices);
-
 		}
 
 	}
